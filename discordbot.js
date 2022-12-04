@@ -1,6 +1,6 @@
 const { Client, GatewayIntentBits, ActivityType, Events, Collection, REST, Routes } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('fs');
+const path = require('path');
 
 
 function loadAllCommands(client,TOKEN){
@@ -35,13 +35,20 @@ function loadAllCommands(client,TOKEN){
 
 class DiscordClient {
     constructor(TOKEN){
+        //Create Recordings Folder If Not Exists
+        let recPath = path.join(__dirname,"recordings");
+        if(!fs.existsSync(recPath)) fs.mkdirSync(recPath);
+
         this.token = TOKEN
+        this.Recording = false;
 
         let client = new Client({
             intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds],
         });
 
         this.client = client;
+
+        var DC = this;
 
         client.login(TOKEN).then((token) => {
             // client.user is now defined
