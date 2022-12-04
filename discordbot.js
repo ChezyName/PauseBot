@@ -33,6 +33,29 @@ function loadAllCommands(client,TOKEN){
     );
 }
 
+async function cleanFiles(){
+    let source = path.join(__dirname,"./recordings");
+    let folders = fs.readdirSync(source, { withFileTypes: true });
+
+    //1 minute ago & time rn for file filtering
+    let maxTime = Date.now();
+    
+    folders.forEach(folder => {
+        let folderPath = path.join(__dirname,"./recordings",folder.name);
+        if(fs.lstatSync(folderPath).isFile()) return;
+        let audioFiles = fs.readdirSync(folderPath, { withFileTypes: true });
+        
+        audioFiles.forEach(audioFile => {
+            let FileName = audioFile.name.replace(".ogg","");
+            if(parseInt(FileName) - maxTime < -60000){
+                //Delete file, its expired.
+                fs.unlinkSync(path.join(folderPath,audioFile.name));
+            }
+        });
+    });
+}
+
+
 class DiscordClient {
     constructor(TOKEN){
         //Create Recordings Folder If Not Exists
@@ -41,6 +64,9 @@ class DiscordClient {
 
         this.token = TOKEN
         this.Recording = false;
+
+        //Clean Files Every 30s
+        this.cleaner = setInterval(cleanFiles,30000);
 
         let client = new Client({
             intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds],

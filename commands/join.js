@@ -25,17 +25,14 @@ function createAudioFile(voiceReceiver,member){
         },
     });
 
-    const filename = `./recordings/rec/${member.id}/${Date.now()}.ogg`;
-    const finalFilename = `./recordings/${member.id}/${Date.now()}.ogg`;
+    const filename = `./recordings/${member.id}/${Date.now()}.ogg`;
 
     if(!fs.existsSync(path.join(__dirname,"../recordings",member.id))) fs.mkdirSync(path.join(__dirname,"../recordings",member.id));
-    if(!fs.existsSync(path.join(__dirname,"../recordings",member.id,"rec"))) fs.mkdirSync(path.join(__dirname,"../recordings",member.id,"rec"));
 
     const out = fs.createWriteStream(filename);
 
     pipeline(opusStream, oggStream, out, (err) => {
         if(!err){
-            fs.renameSync(filename,finalFilename);
             opusStream.destroy();
             oggStream.destroy();
             createAudioFile(voiceReceiver,member);
