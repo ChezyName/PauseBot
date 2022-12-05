@@ -7,7 +7,7 @@ function loadAllCommands(client,TOKEN){
     client.commands = new Collection();
 
     const commandsPath = path.join(__dirname, 'commands');
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('js'));
 
     const commands = [];
 
@@ -42,14 +42,14 @@ async function cleanFiles(){
     
     folders.forEach(folder => {
         let folderPath = path.join(__dirname,"./recordings",folder.name);
-        if(fs.lstatSync(folderPath).isFile()) return;
+        if(folderPath.includes(".ogg")) return;
         let audioFiles = fs.readdirSync(folderPath, { withFileTypes: true });
         
         audioFiles.forEach(audioFile => {
             let FileName = audioFile.name.replace(".ogg","");
             if(parseInt(FileName) - maxTime < -60000){
                 //Delete file, its expired.
-                fs.unlinkSync(path.join(folderPath,audioFile.name));
+                if(fs.existsSync(path.join(folderPath,audioFile.name))) fs.unlinkSync(path.join(folderPath,audioFile.name));
             }
         });
     });

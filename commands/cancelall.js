@@ -1,25 +1,15 @@
-const { OpusEncoder } = require("@discordjs/opus");
+const { joinVoiceChannel } = require("@discordjs/voice");
 const { SlashCommandBuilder } = require("discord.js");
 const fs = require('fs');
 const path = require('path');
 
-const OpusEncode = new OpusEncoder(48000,2);
-async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displayName,Chunks) {
-    if(inputFiles.length == 0) {
-		/*
-		const blob = new Blob(Chunks, {
-			type: 'audio/ogg',
-			codec: 'opus',
-		})
-		const buffer = Buffer.from( await blob.arrayBuffer() );
-		await fs.writeFileSync(fileLoc, OpusEncode.encode(Chunks), () => console.log('OGG File Saved.'));
-		*/
+async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displayName) {
 
+    if(inputFiles.length == 0) {
 		await interaction.editReply({
 			content: "Audio Files For " + displayName,
 			files: [fileLoc],
 		});
-
 		//Remove File
 		fs.unlinkSync(fileLoc);
         return;
@@ -28,26 +18,18 @@ async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displ
     let nextFile = inputFiles.shift(); 
     var readStream = fs.createReadStream(nextFile);
 
-	readStream.pipe(stream, {end: false});
-	readStream.on("data",(chunk) => {
-		//Chunks += (OpusEncode.decode(chunk));
-	});
-    readStream.on('end',async () => {
+    readStream.pipe(stream, {end: false});
+    readStream.on('end', () => {
         //console.log('Finished streaming an audio file');
-        recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displayName,Chunks);
+        recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displayName);
     });
 }
 
 // Joins the voice call of who called the command
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('pause')
-		.setDescription('gives back audio from target if they said something sus.')
-		.addUserOption(option =>
-			option
-				.setName('target')
-				.setDescription('The member to sus out')
-				.setRequired(true)),
+		.setName('cancelall')
+		.setDescription('gives back audio from everyone in VC'),
 	async execute(interaction,DiscordClient) {
         let call = interaction.member.voice.channel.name;
         let callID = interaction.member.voice.channel.id;
@@ -73,7 +55,7 @@ module.exports = {
 			}
 		}
 
-		//console.log(combineFiles);
+		console.log(combineFiles);
 
 		//send combined files
 		if(combineFiles.length == 0){
@@ -89,22 +71,7 @@ module.exports = {
 			let DateNow = dd + "-" + mm + "-" + yyyy;
 
 			let FLoc = path.join("./recordings",displayName+"-"+DateNow+".ogg");
-			//recursiveStreamWriter(combineFiles,interaction,fs.createWriteStream(FLoc),FLoc,displayName,"");
-			const mimeType = "audio/ogg";
-			const options = {
-				onCodec: () => {},
-				onCodecUpdate: () => {},
-				enableLogging: true
-			};
-
-			const { default: CodecParser } = await import("codec-parser");
-			const parser = new CodecParser(mimeType, options);
-			
-			combineFiles.forEach(audioFile => {
-				let File = fs.readFileSync(audioFile,null).buffer;
-				const frames = parser.parseAll(File);
-				console.log(frames);
-			});
+			recursiveStreamWriter(combineFiles,interaction,fs.createWriteStream(FLoc),FLoc,displayName);
 		}
 	},
 };
