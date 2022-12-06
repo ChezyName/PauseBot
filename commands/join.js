@@ -11,7 +11,7 @@ function createAudioFile(voiceReceiver,member){
     const opusStream = voiceReceiver.subscribe(member.id,{
         end: {
             behavior: EndBehaviorType.AfterSilence,
-            duration: 1000,
+            duration: 5000,
         },
     });
 
