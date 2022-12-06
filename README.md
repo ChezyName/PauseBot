@@ -30,4 +30,4 @@ A lot of things acually, Firstly there is a bug where the audio is not always co
 
 For Example: UserA and UserB talked and you used `/export target:@UserA target:@UserB`. In order to do that, I would first need to fix the audio files not always being intact and then merge the audio files.
 
-> Also if someone joins after using `/join` it won't record their audio`
+> Also if someone joins after using `/join` it won't record their audio
