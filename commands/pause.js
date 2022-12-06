@@ -30,7 +30,7 @@ async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displ
 		});
 
 		//Remove File
-		fs.unlinkSync(fileLoc);
+		await fs.unlinkSync(fileLoc);
         return;
     }
 
