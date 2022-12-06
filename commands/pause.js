@@ -67,9 +67,11 @@ async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displ
 }
 
 async function AudioConcatFiles(files,FinalLocation,interaction,displayName){
+	const { parseBuffer } = await import("music-metadata");
+	
 	//set file path based on OS
 	ffmpeg.setFfmpegPath(ffmpegInstaller.path);
-
+	console.log(files);
 	audioconcat(files)
 		.concat(FinalLocation)
 		.on('start', function (command) {
@@ -86,7 +88,12 @@ async function AudioConcatFiles(files,FinalLocation,interaction,displayName){
 				files: [FinalLocation],
 			});
 
-			await fs.unlinkSync(FinalLocation);
+			//await fs.unlinkSync(FinalLocation);
+
+			let fileBuffer = await fs.readFileSync(FinalLocation);
+			let FileData = await parseBuffer(fileBuffer);
+			console.log("FINAL FILE DATA:")
+			console.log(FileData);
 		})
 }
 
@@ -111,7 +118,7 @@ module.exports = {
 
 		let userPath = path.join(__dirname,"../recordings",UID);
 		if(!fs.existsSync(userPath)){
-			await interaction.reply("User is NOT in call / Files not found.")
+			await interaction.editReply("User is NOT in call / Files not found.")
 			return
 		}
 		let audioFiles = fs.readdirSync(userPath, { withFileTypes: true });
@@ -119,12 +126,18 @@ module.exports = {
 		let combineFiles = [];
 
 		//get the files
+		const { parseBuffer } = await import("music-metadata");
 		for(var i = 0; i < audioFiles.length; i++){
 			let audioFile = audioFiles[i];
 			let FileName = audioFile.name.replace(".ogg","");
+
+			let fileBuffer = await fs.readFileSync(path.join(userPath,audioFile.name));
 			if(parseInt(FileName) - Date.now() < -30000){
-				//Delete file, its expired.
-				combineFiles.push(path.join(userPath,audioFile.name))
+				let FileData = await parseBuffer(fileBuffer);
+				console.log(FileData);
+				if(FileData.format.duration > 0){
+					combineFiles.push(path.join(userPath,audioFile.name));
+				}
 			}
 		}
 
