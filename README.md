@@ -17,7 +17,7 @@ DISCORD_TOKEN=ADD_YOU_DISCORD_TOKEN_HERE
 > [How to get Discord Bot Token](https://docs.discordbotstudio.org/setting-up-dbs/finding-your-bot-token)
 
 
-Once you added the token in the `.env`, just run `npm start` and it will run the `index.js` file that creates and runs the discord bot.
+Once you added the token in the `.env`, just run `npm install` to install all the dependencies and then run 'npm start' and it will run the `index.js` file that creates and runs the discord bot.
 
 ## Commands:
 ### Joining The Server
@@ -31,3 +31,7 @@ A lot of things acually, Firstly there is a bug where the audio is not always co
 For Example: UserA and UserB talked and you used `/export target:@UserA target:@UserB`. In order to do that, I would first need to fix the audio files not always being intact and then merge the audio files.
 
 > Also if someone joins after using `/join` it won't record their audio
+
+
+# What you can learn from this?
+I would recommend trying soemthing like this to get a feel for ogg files and FFMPEG, an app to edit audio using cli only.
