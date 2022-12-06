@@ -3,21 +3,30 @@ const { SlashCommandBuilder } = require("discord.js");
 const fs = require('fs');
 const path = require('path');
 
+const ffmpegInstaller = require("@ffmpeg-installer/ffmpeg");
+const audioconcat = require('audioconcat');
+const ffmpeg = require('fluent-ffmpeg');
+
+
 const OpusEncode = new OpusEncoder(48000,2);
 async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displayName,Chunks) {
     if(inputFiles.length == 0) {
-		/*
-		const blob = new Blob(Chunks, {
-			type: 'audio/ogg',
-			codec: 'opus',
-		})
-		const buffer = Buffer.from( await blob.arrayBuffer() );
-		await fs.writeFileSync(fileLoc, OpusEncode.encode(Chunks), () => console.log('OGG File Saved.'));
-		*/
-
 		await interaction.editReply({
 			content: "Audio Files For " + displayName,
 			files: [fileLoc],
+		});
+
+		let NFL = fileLoc.replace(".ogg","-FINAL.ogg");
+		fs.writeFileSync(NFL,Buffer.from(Chunks));
+
+
+		const { parseFile } = await import("music-metadata");
+		let P = await parseFile(NFL);
+		console.log(P)
+		
+		await interaction.editReply({
+			content: "Audio Files For " + displayName,
+			files: [NFL,fileLoc],
 		});
 
 		//Remove File
@@ -28,6 +37,25 @@ async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displ
     let nextFile = inputFiles.shift(); 
     var readStream = fs.createReadStream(nextFile);
 
+	const { default: CodecParser } = await import("codec-parser");
+	const mimeType = "audio/ogg";
+	const options = {
+		onCodec: () => {},
+		onCodecUpdate: () => {},
+		enableLogging: true
+	};
+
+	const parser = new CodecParser(mimeType, options);
+
+	let audioBuffer = await fs.readFileSync(nextFile);
+	let frames = parser.parseAll(audioBuffer);
+	//console.log("<==================================================>")
+	//console.log(frames);
+	for(var i = 0; i < frames.length; i++){
+		Chunks.push(frames[i].rawData);
+	}
+
+
 	readStream.pipe(stream, {end: false});
 	readStream.on("data",(chunk) => {
 		//Chunks += (OpusEncode.decode(chunk));
@@ -36,6 +64,30 @@ async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displ
         //console.log('Finished streaming an audio file');
         recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displayName,Chunks);
     });
+}
+
+async function AudioConcatFiles(files,FinalLocation,interaction,displayName){
+	//set file path based on OS
+	ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+
+	audioconcat(files)
+		.concat(FinalLocation)
+		.on('start', function (command) {
+			//console.log('ffmpeg process started:', command)
+		})
+		.on('error', function (err, stdout, stderr) {
+			//console.error('Error:', err)
+			//console.error('ffmpeg stderr:', stderr)
+		})
+		.on('end', async function (output) {
+			//console.error('Audio created in:', output)
+			await interaction.editReply({
+				content: "Audio Files For " + displayName,
+				files: [FinalLocation],
+			});
+
+			await fs.unlinkSync(FinalLocation);
+		})
 }
 
 // Joins the voice call of who called the command
@@ -58,7 +110,10 @@ module.exports = {
 		await interaction.reply("Loading up audio file for "+displayName);
 
 		let userPath = path.join(__dirname,"../recordings",UID);
-
+		if(!fs.existsSync(userPath)){
+			await interaction.reply("User is NOT in call / Files not found.")
+			return
+		}
 		let audioFiles = fs.readdirSync(userPath, { withFileTypes: true });
 			
 		let combineFiles = [];
@@ -90,21 +145,12 @@ module.exports = {
 
 			let FLoc = path.join("./recordings",displayName+"-"+DateNow+".ogg");
 			//recursiveStreamWriter(combineFiles,interaction,fs.createWriteStream(FLoc),FLoc,displayName,"");
-			const mimeType = "audio/ogg";
-			const options = {
-				onCodec: () => {},
-				onCodecUpdate: () => {},
-				enableLogging: true
-			};
 
-			const { default: CodecParser } = await import("codec-parser");
-			const parser = new CodecParser(mimeType, options);
-			
-			combineFiles.forEach(audioFile => {
-				let File = fs.readFileSync(audioFile,null).buffer;
-				const frames = parser.parseAll(File);
-				console.log(frames);
-			});
+
+
+			//combine
+			//recursiveStreamWriter(combineFiles,interaction,fs.createWriteStream(FLoc),FLoc,displayName);
+			AudioConcatFiles(combineFiles,FLoc,interaction,displayName);
 		}
 	},
 };
