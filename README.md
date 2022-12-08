@@ -35,3 +35,6 @@ For Example: UserA and UserB talked and you used `/export target:@UserA target:@
 
 # What you can learn from this?
 I would recommend trying soemthing like this to get a feel for ogg files and FFMPEG, an app to edit audio using cli only.
+
+# Any main updates?
+Currently packaging to a single EXE File is my priority as well as fixing FFMPEG corrupting the ogg files.
