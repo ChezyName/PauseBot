@@ -23,6 +23,7 @@ async function ConvertToMP3(OldFile){
 
 const OpusEncode = new OpusEncoder(48000,2);
 async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displayName,Chunks) {
+	const { parseFile } = await import("music-metadata");
     if(inputFiles.length == 0) {
 		await interaction.editReply({
 			content: "Audio Files For " + displayName,
@@ -33,7 +34,6 @@ async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displ
 		fs.writeFileSync(NFL,Buffer.from(Chunks));
 
 
-		const { parseFile } = await import("music-metadata");
 		let P = await parseFile(NFL);
 		console.log(P)
 		
@@ -80,7 +80,7 @@ async function recursiveStreamWriter(inputFiles,interaction,stream,fileLoc,displ
 }
 
 async function AudioConcatFiles(files,FinalLocation,interaction,displayName){
-	const { parseBuffer } = await import("music-metadata");
+	const { parseFile } = await import("music-metadata");
 	
 	//set file path based on OS
 	//console.log(files);
@@ -122,6 +122,7 @@ module.exports = {
 		let displayName = guild.members.cache.get(UID).displayName.replace(" ","_");
 
 		await interaction.reply("Loading up audio file for "+displayName);
+		const { parseFile } = await import("music-metadata");
 
 		let userPath = path.join(__dirname,"../recordings",UID);
 		if(!fs.existsSync(userPath)){
@@ -138,9 +139,9 @@ module.exports = {
 			let audioFile = audioFiles[i];
 			let FileName = audioFile.name.replace(".ogg","");
 
-			let fileBuffer = await fs.readFileSync(path.join(userPath,audioFile.name));
+			//let fileBuffer = await fs.readFileSync(path.join(userPath,audioFile.name));
 			if(parseInt(FileName) - Date.now() < -30000){
-				let FileData = await parseBuffer(fileBuffer);
+				let FileData = await parseFile(path.join(userPath,audioFile.name));
 				//console.log(FileData);
 				if(FileData.format.duration > 1){
 					combineFiles.push(path.join(userPath,audioFile.name));
