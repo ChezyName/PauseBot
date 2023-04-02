@@ -1,3 +1,4 @@
+> It's Prob Illegal To Record People WITHOUT Permission So Do So At Your Own Risk.
 # Imagine your friends say something sketch,
 and you heard it, but noone else did... 
 what do you do?
