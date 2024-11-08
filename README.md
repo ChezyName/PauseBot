@@ -39,3 +39,5 @@ I would recommend trying soemthing like this to get a feel for ogg files and FFM
 
 # Any main updates?
 Currently packaging to a single EXE File is my priority as well as fixing FFMPEG corrupting the ogg files.
+
+**No Updates Comming, Dead Project**
